@@ -203,7 +203,7 @@ command_handlers = {
     'add': handle_contact_add,
     'change': handle_contact_change,
     'delete': handle_delete_contact,
-    'show': handle_contact_get_by_name,
+    'get': handle_contact_get_by_name,
     'birthday': handle_contact_set_birthday,
     'greets': handle_congratulate,
     'search': handle_contact_search,

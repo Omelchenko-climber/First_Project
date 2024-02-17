@@ -190,12 +190,7 @@ class NoteCommandHandler(CommandHandler):
             "4": ("Delete note", manager.delete_note),
             "5": ("Add tag to note", manager.add_tag_to_note),
             "6": ("Show all notes", manager.show_all_notes),
-<<<<<<< HEAD
             "0": ("Return to Main Menu", self.return_to_main_menu())
-=======
-
-            "0": exit
->>>>>>> PythonProject/master
         }
         super().__init__(commands, view)
         self.manager = manager
@@ -212,15 +207,11 @@ class NoteCommandHandler(CommandHandler):
         else:
             self.view.display_message('Invalid choice. Please select a valid option.')
 
-<<<<<<< HEAD
     def return_to_main_menu(self):
         """
         Return to the main menu.
         """
         return
-
-=======
->>>>>>> PythonProject/master
 
 def run_note_manager():
     """
@@ -239,21 +230,13 @@ def run_note_manager():
             '4': 'Delete note',
             '5': 'Add tag to note',
             '6': 'Show all notes',
-<<<<<<< HEAD
             '0': 'Return to Main Menu'
-=======
-            '0': 'Exit'
->>>>>>> PythonProject/master
         }
         choice = view.display_menu(options)
         if choice in ['1', '2', '3', '4', '5', '6']:
             note_command_handler.handle_command(choice)
         elif choice == '0':
-<<<<<<< HEAD
             return
-=======
-            exit()
->>>>>>> PythonProject/master
         else:
             view.display_message('Invalid choice. Please select a valid option.')
 

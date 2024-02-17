@@ -40,12 +40,12 @@ class ConsoleView(BaseView):
 
     def display_menu(self, options):
         for key, value in options.items():
-            print(f"{key}. {value}")
-        choice = input("Выберите опцию: ")
+            print(f'{key}. {value}')
+        choice = input('Choose option: ')
         return choice
 
     def get_confirmation(self, message):
-        response = input(f"{message} (да/нет): ")
+        response = input(f'{message} (да/нет): ')
         return response.lower() in ['да', 'yes']
 
 

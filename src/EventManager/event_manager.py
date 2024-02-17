@@ -179,7 +179,7 @@ class EventCommandHandler(CommandHandler):
             "4": ("Search event", manager.search_event),
             "5": ("Edit event", manager.edit_event),
             "6": ("Delete event", manager.delete_event),
-            "0": ("Exit", exit)
+            "0": ("Return to Main Menu", self.return_to_main_menu())
         }
         super().__init__(commands, view)
         self.manager = manager
@@ -196,6 +196,12 @@ class EventCommandHandler(CommandHandler):
         else:
             self.view.display_message('Invalid choice. Please select a valid option.')
 
+    def return_to_main_menu(self):
+        """
+        Return to the main menu.
+        """
+        return
+
 
 def run_event_manager():
     event_file_path = 'events.json'
@@ -211,7 +217,7 @@ def run_event_manager():
             '4': 'Search event',
             '5': 'Edit event',
             '6': 'Delete event',
-            '0': 'Exit'
+            '0': 'Return to Main Menu'
         }
         choice = view.display_menu(options)
         if choice in ['1', '2', '3', '4', '5', '6']:
@@ -219,7 +225,7 @@ def run_event_manager():
             event_command_handler.handle_command(choice)
         elif choice == '0':
             event_manager.save_events()
-            exit()
+            return
         else:
             view.display_message('Invalid choice. Please select a valid option.')
 

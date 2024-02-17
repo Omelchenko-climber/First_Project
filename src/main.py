@@ -1,5 +1,5 @@
-from src.NoteManger.note_manager import NoteManager, NoteCommandHandler, run_note_manager
-from src.EventManager.event_manager import EventManager, EventCommandHandler, run_event_manager
+from src.NoteManger.note_manager import run_note_manager
+from src.EventManager.event_manager import run_event_manager
 from src.View.base_view import ConsoleView
 
 

@@ -204,6 +204,7 @@ class EventCommandHandler(CommandHandler):
 
 
 def run_event_manager():
+    program_name = "Event Manager V0.1"
     event_file_path = 'events.json'
     view = ConsoleView()
     event_manager = EventManager(event_file_path, view)
@@ -219,7 +220,7 @@ def run_event_manager():
             '6': 'Delete event',
             '0': 'Return to Main Menu'
         }
-        choice = view.display_menu(options)
+        choice = view.display_menu(program_name, options)
         if choice in ['1', '2', '3', '4', '5', '6']:
 
             event_command_handler.handle_command(choice)

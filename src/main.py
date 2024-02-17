@@ -7,12 +7,13 @@ def main():
     view = ConsoleView()
 
     while True:
+        program_name = "Main Menu"
         options = {
             '1': 'Note Manager',
             '2': 'Event Manager',
             '0': 'Exit'
         }
-        choice = view.display_menu(options)
+        choice = view.display_menu(program_name, options)
 
         if choice == '1':
             run_note_manager()

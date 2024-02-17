@@ -183,6 +183,7 @@ class NoteCommandHandler(CommandHandler):
             manager: The NoteManager object to perform note-related operations.
             view: The view object for input/output.
         """
+        super().__init__(manager, view)
         commands = {
             "1": ("Add note", manager.add_note),
             "2": ("Search note", manager.search_note),
@@ -213,10 +214,12 @@ class NoteCommandHandler(CommandHandler):
         """
         return
 
+
 def run_note_manager():
     """
     Runs the note manager application.
     """
+    program_name = "Note Manager V0.1"
     note_file_path = 'notes.json'
     view = ConsoleView()
     manager = NoteManager(note_file_path, view)
@@ -232,7 +235,7 @@ def run_note_manager():
             '6': 'Show all notes',
             '0': 'Return to Main Menu'
         }
-        choice = view.display_menu(options)
+        choice = view.display_menu(program_name, options)
         if choice in ['1', '2', '3', '4', '5', '6']:
             note_command_handler.handle_command(choice)
         elif choice == '0':

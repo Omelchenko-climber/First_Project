@@ -1,5 +1,3 @@
-"""Console bot helper"""
-
 from src.ContactManager.models import ObjectValidateError, AddressBook, Record, Name, Phone
 from src.tools.common import CommandHandler, handle_error
 from src.View.base_view import ConsoleView

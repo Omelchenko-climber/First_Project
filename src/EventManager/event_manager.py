@@ -204,6 +204,9 @@ class EventCommandHandler(CommandHandler):
 
 
 def run_event_manager():
+    """
+    Runs the event manager application.
+    """
     program_name = "Event Manager V0.1"
     event_file_path = 'events.json'
     view = ConsoleView()

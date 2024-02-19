@@ -19,13 +19,23 @@ def handle_validation_errors(func):
 
 
 class ContactManager:
+    """Class to manage contacts."""
     def __init__(self, address_book, view):
+        """
+        Initialize ContactManager.
+
+        :param address_book: The address book containing contacts.
+        :param view: The view for displaying messages.
+        """
         self.address_book = address_book
         self.view = view
 
     @handle_error
     @handle_validation_errors
     def handle_add_contact(self):
+        """
+        Handle the addition of a new contact.
+        """
         name = input('Name: ')
         phones_input = input('Phones (comma-separated, 10 digits only): ')
         phones = [phone.strip() for phone in phones_input.split(',')]
@@ -42,6 +52,9 @@ class ContactManager:
     @handle_error
     @handle_validation_errors
     def handle_change_contact(self):
+        """
+        Handle the modification of an existing contact.
+        """
         name_to_change = input('Enter the name of the contact to change: ')
         contact = self.address_book.find(name_to_change)
 
@@ -68,6 +81,9 @@ class ContactManager:
 
     @handle_error
     def handle_delete_contact(self):
+        """
+        Handle the deletion of a contact.
+        """
         name = self.view.get_input("Enter the name of the contact to delete: ")
         if self.address_book.find(name):
             self.address_book.delete(name)
@@ -78,6 +94,9 @@ class ContactManager:
 
     @handle_error
     def handle_get_contact_by_name(self):
+        """
+        Handle retrieving contact information by name.
+        """
         name = self.view.get_input("Enter the name of the contact to search for: ")
         record = self.address_book.find(name)
         if record:
@@ -87,6 +106,9 @@ class ContactManager:
 
     @handle_error
     def handle_search_contacts(self):
+        """
+        Handle searching for contacts based on a query.
+        """
         query = self.view.get_input("Enter the query to search for contacts: ")
         found_contacts = self.address_book.search_full(query)
         if found_contacts:
@@ -97,6 +119,9 @@ class ContactManager:
             self.view.display_message(f"No contacts found for the query '{query}'.")
 
     def handle_display_all_contacts(self):
+        """
+        Handle displaying all contacts.
+        """
         all_contacts = self.address_book.iterator()
         found_contacts = False
         for page in all_contacts:
@@ -133,7 +158,14 @@ class ContactManager:
 
 
 class ContactCommandHandler(CommandHandler):
+    """Command handler for contact management."""
     def __init__(self, manager, view):
+        """
+        Initialize ContactCommandHandler.
+
+        :param manager: The ContactManager instance.
+        :param view: The view for displaying messages.
+        """
         super().__init__(manager, view)
         commands = {
             '1': ("Add contact", manager.handle_add_contact),
@@ -168,6 +200,10 @@ class ContactCommandHandler(CommandHandler):
 
 
 def run_contact_manager():
+    """
+    Run the contact manager program.
+    """
+
     program_name = "Contact Manager V0.1"
     view = ConsoleView()
     address_book = AddressBook()
@@ -193,9 +229,6 @@ def run_contact_manager():
             return
         else:
             view.display_message('Invalid choice. Please select a valid option.')
-
-
-#    address_book.save_data_to_file()
 
 
 if __name__ == '__main__':

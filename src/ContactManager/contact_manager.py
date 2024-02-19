@@ -1,9 +1,8 @@
 """Console bot helper"""
 
-from src.ContactManager.models import ObjectValidateError, AddressBook, Record, Name, Phone, Email, Address, Birthday
+from src.ContactManager.models import ObjectValidateError, AddressBook, Record, Name, Phone
 from src.tools.common import CommandHandler, handle_error
 from src.View.base_view import ConsoleView
-from functools import wraps
 
 
 def handle_validation_errors(func):
@@ -39,6 +38,33 @@ class ContactManager:
         self.address_book.add_record(record)
         self.address_book.save_data_to_file()
         self.view.display_message(f'Contact {name} added.')
+
+    @handle_error
+    @handle_validation_errors
+    def handle_change_contact(self):
+        name_to_change = input('Enter the name of the contact to change: ')
+        contact = self.address_book.find(name_to_change)
+
+        if contact:
+            name = input('Name: ')
+            phones_input = input('Phones (comma-separated, 10 digits only): ')
+            phones = [phone.strip() for phone in phones_input.split(',')]
+            email = input('Email (optional): ')
+            birthday = input('Birthday (optional, dd.mm.yyyy): ')
+            address = input('Address (optional): ')
+
+            contact.name = Name(name)
+            contact.phones = [Phone(phone) for phone in phones]
+            if email:
+                contact.add_email(email)
+            if birthday:
+                contact.set_birthday(birthday)
+            if address:
+                contact.add_address(address)
+            self.address_book.save_data_to_file()
+            self.view.display_message(f'Contact {name_to_change} changed.')
+        else:
+            self.view.display_message(f'Contact with name "{name_to_change}" not found.')
 
     @handle_error
     def handle_delete_contact(self):
@@ -111,11 +137,12 @@ class ContactCommandHandler(CommandHandler):
         super().__init__(manager, view)
         commands = {
             '1': ("Add contact", manager.handle_add_contact),
-            '2': ("Get contact info", manager.handle_get_contact_by_name),
+            '2': ("Change contact", manager.handle_change_contact),
             '3': ("Delete contact", manager.handle_delete_contact),
-            '4': ("Search", manager.handle_search_contacts),
-            '5': ("Show all contacts", manager.handle_display_all_contacts),
-            '6': ("Greets", manager.handle_congratulate),
+            '4': ("Get contact info", manager.handle_get_contact_by_name),
+            '5': ("Search", manager.handle_search_contacts),
+            '6': ("Show all contacts", manager.handle_display_all_contacts),
+            '7': ("Greets", manager.handle_congratulate),
             '0': ("Return to main menu", self.return_to_main_menu())
         }
         super().__init__(commands, view)
@@ -151,15 +178,16 @@ def run_contact_manager():
     while True:
         options = {
             '1': 'Add contact',
-            '2': 'Get contact by name',
+            '2': 'Change contact',
             '3': 'Delete contact',
-            '4': 'Search contacts',
-            '5': 'Show all contacts',
-            '6': 'Congratulate',
+            '4': 'Get contact by name',
+            '5': 'Search contacts',
+            '6': 'Show all contacts',
+            '7': 'Congratulate',
             '0': 'Return to Main Menu'
         }
         choice = view.display_menu(program_name, options)
-        if choice in ['1', '2', '3', '4', '5', '6']:
+        if choice in ['1', '2', '3', '4', '5', '6', '7']:
             contact_command_handler.handle_command(choice)
         elif choice == '0':
             return

@@ -7,7 +7,6 @@
     <list default="true" id="318b8657-eeb8-480f-ae9c-d1a3b89554fd" name="Changes" comment="nested menu navigation complete.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ContactManager/contact_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/ContactManager/contact_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FileManager/file_sorter.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/FileManager/file_sorter.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,6 +48,7 @@
     "Python.main.executor": "Run",
     "Python.models.executor": "Run",
     "Python.note.executor": "Run",
+    "Python.note_manager (1).executor": "Run",
     "Python.note_manager.executor": "Run",
     "Python.test.executor": "Run",
     "Python.work1.executor": "Run",
@@ -170,7 +170,23 @@
       <option name="project" value="LOCAL" />
       <updated>1708345846209</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="nested menu navigation complete.">
+      <option name="closed" value="true" />
+      <created>1708346225118</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1708346225118</updated>
+    </task>
+    <task id="LOCAL-00014" summary="nested menu navigation complete.">
+      <option name="closed" value="true" />
+      <created>1708360994868</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1708360994868</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">

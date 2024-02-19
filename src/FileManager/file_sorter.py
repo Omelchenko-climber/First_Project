@@ -4,6 +4,7 @@ import re
 from src.View.base_view import ConsoleView
 
 
+# Dictionary mapping file types to their corresponding extensions
 DIRECTORIES = {
     "Images": [".jpeg", ".jpg", ".tiff", ".gif", ".bmp", ".png", ".bpg", ".svg", ".heif", ".psd"],
     "Videos": [".avi", ".flv", ".wmv", ".mov", ".mp4", ".webm", ".vob", ".mng", ".qt", ".mpg", ".mpeg", ".3gp"],
@@ -20,6 +21,15 @@ DIRECTORIES = {
 
 
 def normalize(name):
+    """
+    Normalize file name to replace special characters and spaces with underscores.
+
+    Args:
+        name (str): File name to be normalized.
+
+    Returns:
+        str: Normalized file name.
+    """
     translit = {'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
                 'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
                 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
@@ -35,6 +45,12 @@ def normalize(name):
 
 
 def create_directories(root):
+    """
+    Create directories for different types of files.
+
+    Args:
+        root (str): Root directory where the directories will be created.
+    """
     for directory in DIRECTORIES:
         directory_path = os.path.join(root, directory)
         if not os.path.exists(directory_path):
@@ -42,6 +58,13 @@ def create_directories(root):
 
 
 def process_file(file_path, root):
+    """
+    Process a file and move it to the corresponding directory based on its extension.
+
+    Args:
+        file_path (str): Path to the file to be processed.
+        root (str): Root directory where the file is located.
+    """
     for directory, extensions in DIRECTORIES.items():
         for extension in extensions:
             if file_path.lower().endswith(extension):
@@ -73,7 +96,10 @@ def process_file(file_path, root):
 
 def process_directory(root):
     """
-    Обрабатывает все файлы в директории
+    Process all files in a directory and move them to their corresponding directories.
+
+    Args:
+        root (str): Root directory containing the files to be processed.
     """
     print("File sorting in progress ...")
     create_directories(root)
@@ -85,12 +111,21 @@ def process_directory(root):
 
 
 def delete_empty_directories(root):
+    """
+    Delete empty directories within the root directory.
+
+    Args:
+        root (str): Root directory containing directories to be checked and deleted if empty.
+    """
     for dirpath, dirnames, filenames in os.walk(root, topdown=False):
         if not dirnames and not filenames:
             os.rmdir(dirpath)
 
 
 def run_file_sorter():
+    """
+    Entry point to run the file sorting process.
+    """
     view = ConsoleView()
     path = view.get_input("Enter the path to directory you want to sort: ")
     delete_empty_directories(path)

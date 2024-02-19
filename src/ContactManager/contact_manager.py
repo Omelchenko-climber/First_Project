@@ -1,204 +1,174 @@
 """Console bot helper"""
 
-from src.ContactBook.models import ObjectValidateError, AddressBook, Record, Phone, Email, Birthday
-from src.tools.common import CommandHandler
+from src.ContactManager.models import ObjectValidateError, AddressBook, Record, Name, Phone, Email, Address, Birthday
+from src.tools.common import CommandHandler, handle_error
 from src.View.base_view import ConsoleView
 from functools import wraps
 
 
-def handle_error(func):
-    @wraps(func)
+def handle_validation_errors(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except ObjectValidateError as e:
-            return str(e)
-        except KeyError:
-            return 'Enter user name'
-        except ValueError:
-            return 'Give me name and phone please'
-        except IndexError:
-            return 'Invalid command format'
-        except PermissionError as e:
-            return f'No access rights! {str(e)}'
-        except Exception as e:
-            return f'An unexpected error occurred: {str(e)}'
+            print(f"Validation error occurred: {e}")
+            return None
+        except IOError as e:
+            print(f"I/O error occurred: {e}")
+            return None
     return wrapper
 
 
 class ContactManager:
-    def __init__(self, address_book):
+    def __init__(self, address_book, view):
         self.address_book = address_book
-
-    def handle_invalid_command(self, *args):
-        return 'Invalid command format'
-
-    def handle_hello(*args):
-        return 'How can I help you?'
-
-
-    def handle_end(*args):
-        return 'Good bye!'
-
+        self.view = view
 
     @handle_error
-    def handle_contact_add(self, command):
-        def input_field(prompt, field_type):
-            while True:
-                value = input(prompt)
-                if not value:
-                    return None
-                try:
-                    return field_type(value)
-                except ObjectValidateError as e:
-                    print(e)
+    @handle_validation_errors
+    def handle_add_contact(self):
+        name = input('Name: ')
+        phones_input = input('Phones (comma-separated, 10 digits only): ')
+        phones = [phone.strip() for phone in phones_input.split(',')]
+        email = input('Email (optional): ')
+        birthday = input('Birthday (optional, dd.mm.yyyy): ')
+        address = input('Address (optional): ')
 
-        name = input_field('Name:', str)
-
-        phones = []
-        while True:
-            phone = input_field('Phone (10 digits only): ', Phone)
-            if phone:
-                phones.append(phone.value)
-                add_another_phone = input('Do you want to add another phone? (yes/no): ').lower()
-                if add_another_phone != 'yes':
-                    break
-
-        email = input_field('Email:', Email)
-        birthday = input_field('Birthday (dd.mm.yyyy):', Birthday)
-        address = input('Address:')
-
-        record = Record(name, birthday=birthday.value if isinstance(birthday, Birthday) else None,
-                        email=email.value if isinstance(email, Email) else None,
-                        address=address)
-
-        for phone in phones:
-            record.add_phone(phone.strip())
-
+        record = Record(name, email=email, birthday=birthday, address=address)
+        record.phones.extend(Phone(phone_number) for phone_number in phones)
         self.address_book.add_record(record)
-
-        phone_numbers = ', '.join(phones) if phones else 'None'
-        email_str = f', email: {email.value}' if email else ''
-        birthday_str = f', birthday: {birthday.value}' if birthday else ''
-        address_str = f', address: {address}' if address else ''
-
-        result = f'Contact {name} added with phone numbers: {phone_numbers}{email_str}{birthday_str}{address_str}'
-        return result
-
+        self.address_book.save_data_to_file()
+        self.view.display_message(f'Contact {name} added.')
 
     @handle_error
-    def handle_delete_contact(self, command):
-        name = ' '.join(command)
-        record = self.address_book.find(name)
-
-        if not record:
-            return f'Contact "{name}" not found'
-
-        self.address_book.delete(name)
-
-        return f'Contact "{name}" deleted successfully'
-
+    def handle_delete_contact(self):
+        name = self.view.get_input("Enter the name of the contact to delete: ")
+        if self.address_book.find(name):
+            self.address_book.delete(name)
+            self.address_book.save_data_to_file()
+            self.view.display_message(f"Contact '{name}' successfully deleted.")
+        else:
+            self.view.display_message(f"Contact with the name '{name}' not found.")
 
     @handle_error
-    def handle_contact_get_by_name(self, command):
-        name = command[0]
+    def handle_get_contact_by_name(self):
+        name = self.view.get_input("Enter the name of the contact to search for: ")
         record = self.address_book.find(name)
         if record:
-            return str(record)
-
-        return f'Contact {name} not found'
-
+            self.view.display_message(str(record))
+        else:
+            self.view.display_message(f"Contact with the name '{name}' not found.")
 
     @handle_error
-    def handle_contact_search(self, command):
-        query = command[0]
-        records = self.address_book.search_full(query)
+    def handle_search_contacts(self):
+        query = self.view.get_input("Enter the query to search for contacts: ")
+        found_contacts = self.address_book.search_full(query)
+        if found_contacts:
+            self.view.display_message("Found contacts:")
+            for contact in found_contacts:
+                self.view.display_message(str(contact))
+        else:
+            self.view.display_message(f"No contacts found for the query '{query}'.")
 
-        if records:
-            return f'Founded contacts:\n' + '\n'.join([str(record) for record in records])
+    def handle_display_all_contacts(self):
+        all_contacts = self.address_book.iterator()
+        found_contacts = False
+        for page in all_contacts:
+            for contact in page:
+                self.view.display_message(str(contact))
+                found_contacts = True
+        if not found_contacts:
+            self.view.display_message("No contacts found.")
 
-        return f'No contacts found for the request "{query}"'
+    @handle_error
+    def handle_congratulate(self):
+        """
+        Handles the congratulate command.
 
-    def handle_congratulate(self, command):
+        Asks the user to input the number of days for congratulations.
+        If a valid number is provided, it congratulates all contacts whose birthdays are within the specified number
+         of days.
+        If no contacts with birthday information are found, it displays a message accordingly.
+
+        Raises:
+            ValueError: If the input provided is not a valid number.
+        """
+        days = self.view.get_input("Enter the number of days for congratulations: ")
         try:
-            days_ahead = int(command[0])
+            days = int(days)
             for record in self.address_book.data.values():
                 if record.birthday:
-                    result = record.birthday.congratulate(self.address_book, days_ahead)
-                    return result
-            return "No contacts with birthday information found"
-        except (ValueError, IndexError):
-            return 'Use "congratulate n" where n is the number of days from the current date.'
-
-
-    def handle_contact_get_all(self, *args):
-        if not self.address_book.data:
-            return 'No contacts found'
-
-        result = ''
-        for page in self.address_book.iterator():
-            for record in page:
-                result += f'Name: {record.name.value}\n'
-                result += f'Phones: {", ".join(record.get_phones_list())}\n'
-                if record.email:
-                    result += f'Email: {record.email.value}\n'
-                if record.birthday:
-                    days_to_birthday = record.days_to_birthday()
-                    birthday_info = f'({days_to_birthday} days left)' if days_to_birthday is not None else ''
-                    result += f'Birthday: {record.birthday.value}{birthday_info}\n'
-                if record.address:
-                    result += f'Address: {record.address.value}\n'
-                result += '\n'
-
-        return result
+                    result = record.birthday.congratulate(self.address_book, days)
+                    self.view.display_message(result)
+                    return
+            self.view.display_message("No contacts with birthday information found.")
+        except ValueError:
+            self.view.display_message("Please enter a valid number of days.")
 
 
 class ContactCommandHandler(CommandHandler):
-    def __init__(self, manager):
+    def __init__(self, manager, view):
+        super().__init__(manager, view)
         commands = {
-            '1': manager.handle_contact_add,
-            '2': manager.handle_delete_contact,
-            '3': manager.handle_contact_get_by_name,
-            '4': manager.handle_contact_search,
-            '5': manager.handle_contact_get_all,
-            '6': manager.handle_hello,
-            '7': manager.handle_end,
-            '8': manager.handle_end
+            '1': ("Add contact", manager.handle_add_contact),
+            '2': ("Get contact info", manager.handle_get_contact_by_name),
+            '3': ("Delete contact", manager.handle_delete_contact),
+            '4': ("Search", manager.handle_search_contacts),
+            '5': ("Show all contacts", manager.handle_display_all_contacts),
+            '6': ("Greets", manager.handle_congratulate),
+            '0': ("Return to main menu", self.return_to_main_menu())
         }
-        super().__init__(commands, manager)
+        super().__init__(commands, view)
         self.manager = manager
 
+    def handle_command(self, choice):
+        """
+        Handle the selected command.
 
-def main():
+        :param choice: User's choice of command.
+        """
+        command = self.commands.get(choice)
+        if command:
+            command[1]()
+        else:
+            self.view.display_message('Invalid choice. Please select a valid option.')
+
+    def return_to_main_menu(self):
+        """
+        Return to the main menu.
+        """
+        return
+
+
+def run_contact_manager():
+    program_name = "Contact Manager V0.1"
+    view = ConsoleView()
     address_book = AddressBook()
     address_book.load_data_from_file()
-    manager = ContactManager(address_book)
-    contact_command_handler = ContactCommandHandler(manager)
+    manager = ContactManager(address_book, view)
+    contact_command_handler = ContactCommandHandler(manager, view)
 
     while True:
         options = {
             '1': 'Add contact',
-            '2': 'Delete contact',
-            '3': 'Get contact by name',
+            '2': 'Get contact by name',
+            '3': 'Delete contact',
             '4': 'Search contacts',
             '5': 'Show all contacts',
-            '6': 'Say hello',
-            '7': 'Say good bye',
-            '8': 'Close'
+            '6': 'Congratulate',
+            '0': 'Return to Main Menu'
         }
-        choice = input("\n".join([f"{key}. {value}" for key, value in options.items()]) + "\nEnter the n: ").strip()
-
-        if choice == '7':
-            print(manager.handle_end())
-            break
-
-        result = contact_command_handler.handle_command(choice)
-
-        if result == 'Good bye!':
-            print(result)
-            break
+        choice = view.display_menu(program_name, options)
+        if choice in ['1', '2', '3', '4', '5', '6']:
+            contact_command_handler.handle_command(choice)
+        elif choice == '0':
+            return
         else:
-            print(result)
+            view.display_message('Invalid choice. Please select a valid option.')
 
-    address_book.save_data_to_file()
 
+#    address_book.save_data_to_file()
+
+
+if __name__ == '__main__':
+    run_contact_manager()

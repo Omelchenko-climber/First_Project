@@ -75,7 +75,7 @@ class Birthday(Field):
         try:
             datetime.strptime(birthday, "%d.%m.%Y")
         except ValueError:
-            return False, f'Invalid birthday "{birthday}". Right birthday forman d.m.y, like this 28.12.1994'
+            return False, f'Invalid birthday "{birthday}". Right birthday forman dd.mm.yyyy'
         else:
             return True, None
 
@@ -172,9 +172,9 @@ class Record:
 
     def __str__(self):
         text_view = f"Contact name: {self.name.value}; phones: {', '.join(p.value for p in self.phones)}"
-        text_view += '; days to birthday: ' + str(self.days_to_birthday()) if self.birthday else ''
         if self.email:
             text_view += f'; email: {self.email.value}' if self.email else ''
+        text_view += '; days to birthday: ' + str(self.days_to_birthday()) if self.birthday else ''
         if self.address:
             text_view += f'; address: {self.address.value}' if self.address else ''
 

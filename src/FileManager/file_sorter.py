@@ -1,10 +1,9 @@
 import os
-import argparse
 import shutil
 import re
+from src.View.base_view import ConsoleView
 
 
-# список директорий для создания
 DIRECTORIES = {
     "Images": [".jpeg", ".jpg", ".tiff", ".gif", ".bmp", ".png", ".bpg", ".svg", ".heif", ".psd"],
     "Videos": [".avi", ".flv", ".wmv", ".mov", ".mp4", ".webm", ".vob", ".mng", ".qt", ".mpg", ".mpeg", ".3gp"],
@@ -21,28 +20,21 @@ DIRECTORIES = {
 
 
 def normalize(name):
-    # транслитерация кириллических символов на латиницу
-    translit = {'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
-                'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
-                'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
-                'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shc', 'ъ': '',
-                'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'}
+    translit = {'Р°': 'a', 'Р±': 'b', 'РІ': 'v', 'Рі': 'g', 'Рґ': 'd', 'Рµ': 'e', 'С‘': 'yo',
+                'Р¶': 'zh', 'Р·': 'z', 'Рё': 'i', 'Р№': 'y', 'Рє': 'k', 'Р»': 'l', 'Рј': 'm',
+                'РЅ': 'n', 'Рѕ': 'o', 'Рї': 'p', 'СЂ': 'r', 'СЃ': 's', 'С‚': 't', 'Сѓ': 'u',
+                'С„': 'f', 'С…': 'h', 'С†': 'ts', 'С‡': 'ch', 'С€': 'sh', 'С‰': 'shc', 'СЉ': '',
+                'С‹': 'y', 'СЊ': '', 'СЌ': 'e', 'СЋ': 'yu', 'СЏ': 'ya'}
     name = name.lower()
     for cyr, lat in translit.items():
         name = name.replace(cyr, lat)
-    # замена недопустимых символов на '_'
     name = re.sub(r'[^\w\s-]', '_', name)
-    # удаление повторяющихся пробелов
     name = re.sub(r'\s+', ' ', name)
-    # замена пробелов на '_'
     name = name.strip().replace(' ', '_')
     return name
 
 
 def create_directories(root):
-    """
-    Создает директории для файлов
-    """
     for directory in DIRECTORIES:
         directory_path = os.path.join(root, directory)
         if not os.path.exists(directory_path):
@@ -50,36 +42,27 @@ def create_directories(root):
 
 
 def process_file(file_path, root):
-    """
-    Обрабатывает файл и перемещает его в соответствующую директорию
-    """
     for directory, extensions in DIRECTORIES.items():
         for extension in extensions:
             if file_path.lower().endswith(extension):
                 file_directory = os.path.join(root, directory)
-                # разделение пути к файлу на имя и расширение
                 file_name, file_ext = os.path.splitext(os.path.basename(file_path))
-                # переименование файла с помощью функции normalize
                 file_name = normalize(file_name) + file_ext
                 destination = os.path.join(file_directory, file_name)
                 shutil.move(file_path, destination)
                 return
 
-    # Если расширение файла не найдено, проверить, является ли файл архивом
     archive_extensions = [".zip", ".tar", ".gz"]
     if any(file_path.lower().endswith(extension) for extension in archive_extensions):
-        # распаковка архива в папку Archives
         archive_name, _ = os.path.splitext(os.path.basename(file_path))
         archive_directory = os.path.join(root, "Archives", archive_name)
         if not os.path.exists(archive_directory):
             os.makedirs(archive_directory)
         shutil.unpack_archive(file_path, archive_directory)
 
-        # удаление архива
         os.remove(file_path)
         return
 
-    # Если файл не является архивом и расширение файла не найдено, переместить файл в папку "Unknown"
     unknown_directory = os.path.join(root, "Unknown")
     if not os.path.exists(unknown_directory):
         os.makedirs(unknown_directory)
@@ -90,30 +73,30 @@ def process_file(file_path, root):
 
 def process_directory(root):
     """
-    Обрабатывает все файлы в директории
+    РћР±СЂР°Р±Р°С‚С‹РІР°РµС‚ РІСЃРµ С„Р°Р№Р»С‹ РІ РґРёСЂРµРєС‚РѕСЂРёРё
     """
+    print("File sorting in progress ...")
     create_directories(root)
     for path, _, files in os.walk(root):
         for file in files:
             file_path = os.path.join(path, file)
             process_file(file_path, root)
+    print("File sorting completed.")
 
 
 def delete_empty_directories(root):
-    """
-    Удаляет пустые директории из корневой директории
-    """
-    excluded_directories = [os.path.join(args.path)]
-
     for dirpath, dirnames, filenames in os.walk(root, topdown=False):
-        if not dirnames and not filenames and dirpath not in excluded_directories:
+        if not dirnames and not filenames:
             os.rmdir(dirpath)
 
 
+def run_file_sorter():
+    view = ConsoleView()
+    path = view.get_input("Enter the path to directory you want to sort: ")
+    delete_empty_directories(path)
+    create_directories(path)
+    process_directory(path)
+
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("path")
-    parser.add_argument("--exclude", nargs='+')
-    args = parser.parse_args()
-    delete_empty_directories(args.path)
-    process_directory(args.path)
+    run_file_sorter()

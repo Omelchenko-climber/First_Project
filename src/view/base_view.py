@@ -5,32 +5,35 @@ class BaseView(ABC):
     @abstractmethod
     def display_message(self, message):
         """
-        Отображает сообщение пользователю.
+        Displays a message to the user.
         """
         pass
 
     @abstractmethod
     def get_input(self, prompt):
         """
-        Запрашивает ввод от пользователя с подсказкой.
+        Requests input from the user with a prompt.
         """
         pass
 
     @abstractmethod
     def display_program_name(self, program_name):
+        """
+        Displays the name of the program.
+        """
         pass
 
     @abstractmethod
     def display_menu(self, program_name, options):
         """
-        Отображает меню с опциями.
+        Displays a menu with options.
         """
         pass
 
     @abstractmethod
     def get_confirmation(self, message):
         """
-        Запрашивает у пользователя подтверждение (да/нет).
+        Requests confirmation from the user (yes/no).
         """
         pass
 

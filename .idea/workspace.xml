@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="318b8657-eeb8-480f-ae9c-d1a3b89554fd" name="Changes" comment="Validate load record fixes">
+    <list default="true" id="318b8657-eeb8-480f-ae9c-d1a3b89554fd" name="Changes" comment="Congratulate method range fixed">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ContactManager/contact_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/ContactManager/contact_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ContactManager/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/ContactManager/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/View/base_view.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/View/base_view.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -271,7 +270,15 @@
       <option name="project" value="LOCAL" />
       <updated>1708437772445</updated>
     </task>
-    <option name="localTasksCounter" value="25" />
+    <task id="LOCAL-00025" summary="Congratulate method range fixed">
+      <option name="closed" value="true" />
+      <created>1708440823548</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1708440823548</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -290,6 +297,7 @@
     <MESSAGE value="nested menu navigation complete." />
     <MESSAGE value="Validation fixes" />
     <MESSAGE value="Validate load record fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="Validate load record fixes" />
+    <MESSAGE value="Congratulate method range fixed" />
+    <option name="LAST_COMMIT_MESSAGE" value="Congratulate method range fixed" />
   </component>
 </project>

@@ -58,5 +58,3 @@ class ConsoleView(BaseView):
     def get_confirmation(self, message):
         response = input(f'{message} (yes/no): ')
         return response.lower() in ['yes']
-
-

@@ -172,12 +172,18 @@ class Record:
         return (next_birthday - now).days
 
     def __str__(self):
-        text_view = f"Contact name: {self.name.value}; phones: {', '.join(p.value for p in self.phones)}"
+        text_view = f"Contact name: {self.name.value}\nPhones: {', '.join(p.value for p in self.phones)}"
+
         if self.email:
-            text_view += f'; email: {self.email.value}' if self.email else ''
-        text_view += '; days to birthday: ' + str(self.days_to_birthday()) if self.birthday else ''
+            text_view += f'\nEmail: {self.email.value}'
+
+        if self.birthday:
+            text_view += f'\nDays to birthday: {self.days_to_birthday()}'
+
         if self.address:
-            text_view += f'; address: {self.address.value}' if self.address else ''
+            text_view += f'\nAddress: {self.address.value}'
+
+        text_view += '\n'
 
         return text_view
 
@@ -221,9 +227,13 @@ class AddressBook(UserDict):
         for phone in record.phones:
             if not isinstance(phone, Phone):
                 return False
+        if record.email and not isinstance(record.email, Email):
+            return False
         if record.birthday:
             if not isinstance(record.birthday, Birthday):
                 return False
+        if record.address and not isinstance(record.address, Address):
+            return False
         return True
 
     def add_record(self, record):

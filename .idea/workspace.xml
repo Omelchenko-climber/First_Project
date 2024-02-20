@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="318b8657-eeb8-480f-ae9c-d1a3b89554fd" name="Changes" comment="nested menu navigation complete.">
+    <list default="true" id="318b8657-eeb8-480f-ae9c-d1a3b89554fd" name="Changes" comment="Validation fixes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ContactManager/contact_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/ContactManager/contact_manager.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ContactManager/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/ContactManager/models.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -255,7 +254,15 @@
       <option name="project" value="LOCAL" />
       <updated>1708421669407</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="Validation fixes">
+      <option name="closed" value="true" />
+      <created>1708434274437</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1708434274437</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -272,6 +279,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="1" />
     <MESSAGE value="nested menu navigation complete." />
-    <option name="LAST_COMMIT_MESSAGE" value="nested menu navigation complete." />
+    <MESSAGE value="Validation fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Validation fixes" />
   </component>
 </project>

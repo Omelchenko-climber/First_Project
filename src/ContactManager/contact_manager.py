@@ -1,79 +1,110 @@
-from src.ContactManager.models import ObjectValidateError, AddressBook, Record, Name, Phone
+from src.ContactManager.models import ObjectValidateError, AddressBook, Record,Name, Address, Phone, Email, Birthday
 from src.tools.common import CommandHandler, handle_error
 from src.View.base_view import ConsoleView
-import re
-from datetime import datetime
 
 
-def handle_validation_errors(func):
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except ObjectValidateError as e:
-            print(f"Validation error occurred: {e}")
-            return None
-        except IOError as e:
-            print(f"I/O error occurred: {e}")
-            return None
-    return wrapper
-
-
-def get_user_output(entity):
-    if entity == 'name':
-        name = input('Name: ')
-        if not name:
-            return run_contact_manager()
-        try:
-            if re.match(r"^[a-zA-Z]{2,}$", name):
-                return name.capitalize()
-            else:
-                raise ValueError('The name must be longer than one letter and not contain numbers!')
-        except Exception as e:
-            print(e)
-            get_user_output(entity)
-    elif entity == 'email':
-        email = input('Email (optional): ')
-        if not email:
-            return ""
-        try:
-            if re.match(r"[^@]+@[^@]+\.[^@]+", email):
-                return email
-            else:
-                raise ValueError(f'Invalid email address "{email}"')
-        except Exception as e:
-            print(e)
-            get_user_output(entity)
-    elif entity == 'birthday':
-        birthday = input('Birthday (optional, dd.mm.yyyy): ')
-        if not birthday:
-            return run_contact_manager()
-        try:
-            datetime.strptime(birthday, "%d.%m.%Y")
-        except ValueError:
-            print((f'Invalid birthday "{birthday}". Right birthday format dd.mm.yyyy'))
-            get_user_output(entity)
-        else:
-            return birthday
-    elif entity == 'phone':
-        list_phones = []
-        phones = [phone.strip() for phone in input('Phones (comma-separated, 10 digits only): ').split(',')]
-        if not any(phones):
-            return run_contact_manager()
-        try:
-            for phone in phones:
-                if re.match(r"\b\d{10}\b", phone):
-                    list_phones.append(phone)
+class UserInputHandler:
+    @staticmethod
+    @handle_error
+    def get_user_name(required=False):
+        while True:
+            name = input('Name: ')
+            if not name:
+                if required:
+                    print("Name is required.")
                 else:
-                    raise ValueError('Phone must contain 10 digits only.')
-        except ValueError as e:
-            print(e)
-            get_user_output(entity)
-        else:
-            return list_phones
+                    return None
+            else:
+                return name
+
+    @staticmethod
+    @handle_error
+    def get_user_phones(required=False):
+        while True:
+            phones_input = input('Phones (comma-separated, 10 digits only): ')
+            if required and not phones_input:
+                print("At least one phone number is required.")
+                continue
+            phones = [phone.strip() for phone in phones_input.split(',')]
+            all_valid = True
+            for phone in phones:
+                try:
+                    Phone(phone)
+                except ObjectValidateError as e:
+                    print(f"Validation error occurred: {e}")
+                    all_valid = False
+                    break
+            if all_valid:
+                return phones
+
+    @staticmethod
+    @handle_error
+    def get_user_email(required=False):
+        while True:
+            email = input('Email (optional): ')
+            if required and not email:
+                print("Email is required.")
+                continue
+            if not email:
+                return None
+            try:
+                Email(email)
+            except ObjectValidateError as e:
+                print(f"Validation error occurred: {e}")
+                continue
+            return email
+
+    @staticmethod
+    @handle_error
+    def get_user_birthday(required=False):
+        while True:
+            birthday = input('Birthday (optional, dd.mm.yyyy): ')
+            if required and not birthday:
+                print("Birthday is required.")
+                continue
+            if not birthday:
+                return None
+            try:
+                Birthday(birthday)
+            except ObjectValidateError as e:
+                print(f"Validation error occurred: {e}")
+                continue
+            return birthday
+
+    @staticmethod
+    @handle_error
+    def get_user_address(required=False):
+        while True:
+            address = input('Address (optional, max length 25): ')
+            if required and not address:
+                print("Address is required.")
+                continue
+            if not address:
+                return None
+            try:
+                Address(address)
+            except ObjectValidateError as e:
+                print(f"Validation error occurred: {e}")
+                continue
+            return address
+
+    @staticmethod
+    def get_user_output(entity, required=False):
+        if entity == 'name':
+            return UserInputHandler.get_user_name(required)
+        elif entity == 'phone':
+            return UserInputHandler.get_user_phones(required)
+        elif entity == 'email':
+            return UserInputHandler.get_user_email(required)
+        elif entity == 'birthday':
+            return UserInputHandler.get_user_birthday(required)
+        elif entity == 'address':
+            return UserInputHandler.get_user_address(required)
 
 
 class ContactManager:
     """Class to manage contacts."""
+
     def __init__(self, address_book, view):
         """
         Initialize ContactManager.
@@ -83,18 +114,28 @@ class ContactManager:
         """
         self.address_book = address_book
         self.view = view
+        self.user_input_handler = UserInputHandler()
 
     @handle_error
-    @handle_validation_errors
     def handle_add_contact(self):
         """
         Handle the addition of a new contact.
         """
-        name = get_user_output('name')
-        phones = get_user_output('phone')
-        email = get_user_output('email')
-        birthday = get_user_output('birthday')
-        address = input('Address (optional): ')
+        name = self.user_input_handler.get_user_output('name', required=True)
+        if not name:
+            return
+
+        if self.address_book.find(name):
+            self.view.display_message(f'Contact with name "{name}" already exists.')
+            return
+
+        phones = self.user_input_handler.get_user_output('phone', required=True)
+        if not phones:
+            return
+
+        email = self.user_input_handler.get_user_output('email', required=False)
+        birthday = self.user_input_handler.get_user_output('birthday', required=False)
+        address = self.user_input_handler.get_user_output('address', required=False)
 
         record = Record(name, email=email, birthday=birthday, address=address)
         record.phones.extend(Phone(phone_number) for phone_number in phones)
@@ -103,29 +144,31 @@ class ContactManager:
         self.view.display_message(f'Contact {name} added.')
 
     @handle_error
-    @handle_validation_errors
     def handle_change_contact(self):
         """
         Handle the modification of an existing contact.
         """
-        name_to_change = input('Enter the name of the contact to change: ')
+        name_to_change = self.user_input_handler.get_user_output('name', required=True)
+        if not name_to_change:
+            return
+
         contact = self.address_book.find(name_to_change)
-
         if contact:
-            name = get_user_output('name')
-            phones = get_user_output('phone')
-            email = get_user_output('email')
-            birthday = get_user_output('birthday')
-            address = input('Address (optional): ')
+            name = self.user_input_handler.get_user_output('name')
+            phones = self.user_input_handler.get_user_output('phone')
+            email = self.user_input_handler.get_user_output('email', required=False)
+            birthday = self.user_input_handler.get_user_output('birthday', required=False)
+            address = self.user_input_handler.get_user_output('address', required=False)
 
-            contact.name = Name(name)
-            contact.phones = [Phone(phone) for phone in phones]
+            contact.name = Name(name) if name else contact.name
+            contact.phones = [Phone(phone) for phone in phones] if phones else contact.phones
             if email:
                 contact.add_email(email)
             if birthday:
                 contact.set_birthday(birthday)
             if address:
                 contact.add_address(address)
+
             self.address_book.save_data_to_file()
             self.view.display_message(f'Contact {name_to_change} changed.')
         else:
@@ -137,9 +180,8 @@ class ContactManager:
         Handle the deletion of a contact.
         """
         name = self.view.get_input("Enter the name of the contact to delete: ")
-        cap_name = name.capitalize()
-        if self.address_book.find(cap_name):
-            self.address_book.delete(cap_name)
+        if self.address_book.find(name):
+            self.address_book.delete(name)
             self.address_book.save_data_to_file()
             self.view.display_message(f"Contact '{name}' successfully deleted.")
         else:
@@ -167,7 +209,7 @@ class ContactManager:
         if found_contacts:
             self.view.display_message("Found contacts:")
             for contact in found_contacts:
-                self.view.display_notes({title: content.strip() for title, content in [x.split(":") for x in str(contact).split(";")]})
+                self.view.display_message(contact)
         else:
             self.view.display_message(f"No contacts found for the query '{query}'.")
 
@@ -179,8 +221,7 @@ class ContactManager:
         found_contacts = False
         for page in all_contacts:
             for contact in page:
-                print(contact)
-                self.view.display_notes({title: content.strip() for title, content in [x.split(":") for x in str(contact).split(";")]})
+                self.view.display_message(str(contact))
                 found_contacts = True
         if not found_contacts:
             self.view.display_message("No contacts found.")

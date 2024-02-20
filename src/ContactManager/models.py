@@ -106,6 +106,8 @@ class Address(Field):
         super().__init__(address)
 
     def is_valid(self, address):
+        if len(address) > 25:
+            return False, f'Address too long "{address}"! Max length 25 symbols'
         return True, None
 
 

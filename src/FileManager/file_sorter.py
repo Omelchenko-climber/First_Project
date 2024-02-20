@@ -145,12 +145,18 @@ def run_file_sorter():
     Entry point to run the file sorting process.
     """
     view = ConsoleView()
-    path = view.get_input("Enter the path to directory you want to sort: ")
-    global path_for_count
-    path_for_count = path
-    delete_empty_directories(path)
-    create_directories(path)
-    process_directory(path)
+    while True:
+        path = view.get_input("Enter the path to directory you want to sort: ")
+
+        if not os.path.exists(path):
+            print("Error: The specified path does not exist.")
+        else:
+            global path_for_count
+            path_for_count = path
+            delete_empty_directories(path)
+            create_directories(path)
+            process_directory(path)
+            break
 
 
 def arch_count():

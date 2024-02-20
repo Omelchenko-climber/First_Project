@@ -1,6 +1,8 @@
 from src.ContactManager.models import ObjectValidateError, AddressBook, Record, Name, Phone
 from src.tools.common import CommandHandler, handle_error
 from src.View.base_view import ConsoleView
+import re
+from datetime import datetime
 
 
 def handle_validation_errors(func):
@@ -14,6 +16,60 @@ def handle_validation_errors(func):
             print(f"I/O error occurred: {e}")
             return None
     return wrapper
+
+
+def get_user_output(entity):
+    if entity == 'name':
+        name = input('Name: ')
+        if not name:
+            return run_contact_manager()
+        try:
+            if re.match(r"^[a-zA-Z]{2,}$", name):
+                return name.capitalize()
+            else:
+                raise ValueError('The name must be longer than one letter and not contain numbers!')
+        except Exception as e:
+            print(e)
+            get_user_output(entity)
+    elif entity == 'email':
+        email = input('Email (optional): ')
+        if not email:
+            return ""
+        try:
+            if re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                return email
+            else:
+                raise ValueError(f'Invalid email address "{email}"')
+        except Exception as e:
+            print(e)
+            get_user_output(entity)
+    elif entity == 'birthday':
+        birthday = input('Birthday (optional, dd.mm.yyyy): ')
+        if not birthday:
+            return run_contact_manager()
+        try:
+            datetime.strptime(birthday, "%d.%m.%Y")
+        except ValueError:
+            print((f'Invalid birthday "{birthday}". Right birthday format dd.mm.yyyy'))
+            get_user_output(entity)
+        else:
+            return birthday
+    elif entity == 'phone':
+        list_phones = []
+        phones = [phone.strip() for phone in input('Phones (comma-separated, 10 digits only): ').split(',')]
+        if not any(phones):
+            return run_contact_manager()
+        try:
+            for phone in phones:
+                if re.match(r"\b\d{10}\b", phone):
+                    list_phones.append(phone)
+                else:
+                    raise ValueError('Phone must contain 10 digits only.')
+        except ValueError as e:
+            print(e)
+            get_user_output(entity)
+        else:
+            return list_phones
 
 
 class ContactManager:
@@ -34,11 +90,10 @@ class ContactManager:
         """
         Handle the addition of a new contact.
         """
-        name = input('Name: ')
-        phones_input = input('Phones (comma-separated, 10 digits only): ')
-        phones = [phone.strip() for phone in phones_input.split(',')]
-        email = input('Email (optional): ')
-        birthday = input('Birthday (optional, dd.mm.yyyy): ')
+        name = get_user_output('name')
+        phones = get_user_output('phone')
+        email = get_user_output('email')
+        birthday = get_user_output('birthday')
         address = input('Address (optional): ')
 
         record = Record(name, email=email, birthday=birthday, address=address)
@@ -57,11 +112,10 @@ class ContactManager:
         contact = self.address_book.find(name_to_change)
 
         if contact:
-            name = input('Name: ')
-            phones_input = input('Phones (comma-separated, 10 digits only): ')
-            phones = [phone.strip() for phone in phones_input.split(',')]
-            email = input('Email (optional): ')
-            birthday = input('Birthday (optional, dd.mm.yyyy): ')
+            name = get_user_output('name')
+            phones = get_user_output('phone')
+            email = get_user_output('email')
+            birthday = get_user_output('birthday')
             address = input('Address (optional): ')
 
             contact.name = Name(name)
@@ -83,8 +137,9 @@ class ContactManager:
         Handle the deletion of a contact.
         """
         name = self.view.get_input("Enter the name of the contact to delete: ")
-        if self.address_book.find(name):
-            self.address_book.delete(name)
+        cap_name = name.capitalize()
+        if self.address_book.find(cap_name):
+            self.address_book.delete(cap_name)
             self.address_book.save_data_to_file()
             self.view.display_message(f"Contact '{name}' successfully deleted.")
         else:
@@ -112,7 +167,7 @@ class ContactManager:
         if found_contacts:
             self.view.display_message("Found contacts:")
             for contact in found_contacts:
-                self.view.display_message(str(contact))
+                self.view.display_notes({title: content.strip() for title, content in [x.split(":") for x in str(contact).split(";")]})
         else:
             self.view.display_message(f"No contacts found for the query '{query}'.")
 
@@ -124,7 +179,8 @@ class ContactManager:
         found_contacts = False
         for page in all_contacts:
             for contact in page:
-                self.view.display_message(str(contact))
+                print(contact)
+                self.view.display_notes({title: content.strip() for title, content in [x.split(":") for x in str(contact).split(";")]})
                 found_contacts = True
         if not found_contacts:
             self.view.display_message("No contacts found.")

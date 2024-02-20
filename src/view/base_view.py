@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from tabulate import tabulate
 
 
 class BaseView(ABC):
@@ -50,8 +51,7 @@ class ConsoleView(BaseView):
 
     def display_menu(self, program_name, options):
         self.display_program_name(program_name)
-        for key, value in options.items():
-            print(f'{key}. {value}')
+        print(tabulate(options.items(), tablefmt="presto"))
         choice = input('Choose option: ')
         return choice
 

@@ -1,3 +1,4 @@
+from datetime import date
 from src.View.base_view import ConsoleView
 from src.tools.common import CommandHandler, handle_error
 import json
@@ -12,7 +13,7 @@ class Note:
         content (str): The content of the note.
         tags (list): The tags associated with the note.
     """
-    def __init__(self, title, content, tags):
+    def __init__(self, title, content, tags, note_date=None):
         """
         Initializes a Note object with the provided title, content, and tags.
 
@@ -24,6 +25,10 @@ class Note:
         self.title = title
         self.tags = tags
         self.content = content
+        if note_date:
+            self.note_date = note_date
+        else:
+            self.note_date = date.today().strftime("%d-%m-%Y")
 
     def __str__(self):
         """
@@ -32,7 +37,7 @@ class Note:
         Returns:
             str: A string containing the title, tags, and content of the note.
         """
-        return f'Title: {self.title}\nTags: {", ".join(self.tags)}\nContent: {self.content}\n'
+        return f"Title: {self.title}\nTags: {', '.join(self.tags)}\nContent: {self.content}\nDate: {self.note_date}"
 
 
 class NoteManager:
@@ -99,7 +104,8 @@ class NoteManager:
         Searches for notes based on a query.
         """
         query = self.view.get_input('Enter search query: ')
-        results = [note for note in self.notes if query in note.title or query in note.content or query in note.tags]
+        results = [note for note in self.notes if query in note.title or query in note.content\
+                   or query in note.tags or query in note.note_date]
         if results:
             sorted_results = sorted(results, key=lambda note: note.title)
             self.view.display_message('Search results:')

@@ -106,7 +106,6 @@ class Address(Field):
         super().__init__(address)
 
     def is_valid(self, address):
-
         return True, None
 
 

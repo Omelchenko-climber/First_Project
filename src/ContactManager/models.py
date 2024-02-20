@@ -79,27 +79,6 @@ class Birthday(Field):
         else:
             return True, None
 
-    @classmethod
-    def congratulate(cls, address_book, days_ahead):
-        current_date = datetime.now()
-        future_date = current_date + timedelta(days=days_ahead)
-
-        congratulation_list = []
-
-        for record in address_book.data.values():
-            days_to_birthday = record.days_to_birthday()
-            if days_to_birthday is not None and days_to_birthday == days_ahead:
-                congratulation_list.append(record)
-
-        if congratulation_list:
-            result = f'Congratulations to the following contacts, whose birthday is in {days_ahead} days:\n'
-            for record in congratulation_list:
-                result += f'{record.name.value} - Birthday: {record.birthday.value}\n'
-        else:
-            result = f'No contacts have birthdays in {days_ahead} days'
-
-        return result
-
 
 class Address(Field):
     def __init__(self, address):
@@ -170,6 +149,10 @@ class Record:
         if next_birthday < now:
             next_birthday = datetime(now.year + 1, birthday.month, birthday.day)
         return (next_birthday - now).days
+
+    def is_in_range(self, n):
+        days_to_birthday = self.days_to_birthday()
+        return 0 <= days_to_birthday <= n
 
     def __str__(self):
         text_view = f"Contact name: {self.name.value}\nPhones: {', '.join(p.value for p in self.phones)}"

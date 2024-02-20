@@ -1,4 +1,4 @@
-from src.ContactManager.models import ObjectValidateError, AddressBook, Record,Name, Address, Phone, Email, Birthday
+from src.ContactManager.models import ObjectValidateError, AddressBook, Record, Name, Address, Phone, Email, Birthday
 from src.tools.common import CommandHandler, handle_error
 from src.View.base_view import ConsoleView
 
@@ -242,12 +242,21 @@ class ContactManager:
         days = self.view.get_input("Enter the number of days for congratulations: ")
         try:
             days = int(days)
+            congratulation_list = []
+
             for record in self.address_book.data.values():
-                if record.birthday:
-                    result = record.birthday.congratulate(self.address_book, days)
-                    self.view.display_message(result)
-                    return
-            self.view.display_message("No contacts with birthday information found.")
+                if record.birthday and record.is_in_range(days):
+                    congratulation_list.append(record)
+
+            if congratulation_list:
+                result = f'\nCongratulations to the following contacts, whose birthday is in the next {days} days:\n'
+                for record in congratulation_list:
+                    result += f'{record.name.value} - Birthday: {record.birthday.value}\n'
+            else:
+                result = f'No contacts have birthdays in the next {days} days.'
+
+            self.view.display_message(result)
+
         except ValueError:
             self.view.display_message("Please enter a valid number of days.")
 

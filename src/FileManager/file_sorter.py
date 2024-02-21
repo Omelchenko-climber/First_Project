@@ -3,7 +3,7 @@ import shutil
 import re
 import pathlib
 import logging
-from src.View.base_view import ConsoleView
+from View.base_view import ConsoleView
 
 # Настройка логгирования
 logging.basicConfig(filename='file_sorter.log', level=logging.INFO, format='%(asctime)s - %(message)s')

@@ -1,6 +1,6 @@
-from src.ContactManager.models import ObjectValidateError, AddressBook, Record, Name, Address, Phone, Email, Birthday
-from src.tools.common import CommandHandler, handle_error
-from src.View.base_view import ConsoleView
+from ContactManager.models import ObjectValidateError, AddressBook, Record, Name, Address, Phone, Email, Birthday
+from tools.common import CommandHandler, handle_error
+from View.base_view import ConsoleView
 
 
 class UserInputHandler:

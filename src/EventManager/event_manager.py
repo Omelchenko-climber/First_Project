@@ -1,5 +1,5 @@
-from src.View.base_view import ConsoleView
-from src.tools.common import CommandHandler, handle_error
+from View.base_view import ConsoleView
+from tools.common import CommandHandler, handle_error
 from datetime import datetime, timedelta
 import json
 

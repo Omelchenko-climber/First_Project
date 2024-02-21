@@ -1,8 +1,8 @@
-from src.ContactManager.contact_manager import run_contact_manager
-from src.NoteManger.note_manager import run_note_manager
-from src.EventManager.event_manager import run_event_manager
-from src.FileManager.file_sorter import run_file_sorter, counter
-from src.View.base_view import ConsoleView
+from ContactManager.contact_manager import run_contact_manager
+from NoteManger.note_manager import run_note_manager
+from EventManager.event_manager import run_event_manager
+from FileManager.file_sorter import run_file_sorter, counter
+from View.base_view import ConsoleView
 
 
 def run():

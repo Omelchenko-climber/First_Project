@@ -5,7 +5,7 @@ from src.FileManager.file_sorter import run_file_sorter, counter
 from src.View.base_view import ConsoleView
 
 
-def main():
+def run():
     view = ConsoleView()
 
     while True:
@@ -52,4 +52,4 @@ def file_manager_menu(view):
 
 
 if __name__ == '__main__':
-    main()
+    run()

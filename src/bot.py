@@ -1,54 +1,74 @@
-from ContactManager.contact_manager import run_contact_manager
-from NoteManger.note_manager import run_note_manager
-from EventManager.event_manager import run_event_manager
-from FileManager.file_sorter import run_file_sorter, counter
-from View.base_view import ConsoleView
+from contact_manager import run_contact_manager
+from note_manager import run_note_manager
+from event_manager import run_event_manager
+from file_sorter import run_file_sorter, counter
+from base_view import ConsoleView
+from common import clear_console, CommandHandler
+
+
+def run_contact_manager_wrapper():
+    clear_console()
+    run_contact_manager()
+
+
+def run_note_manager_wrapper():
+    clear_console()
+    run_note_manager()
+
+
+def run_event_manager_wrapper():
+    clear_console()
+    run_event_manager()
+
+
+def run_file_manager_wrapper():
+    clear_console()
+    file_manager_menu(ConsoleView())
+
+
+def exit_program():
+    clear_console()
+    exit()
 
 
 def run():
     view = ConsoleView()
+    commands = {
+        '1': ('Contact Manager', run_contact_manager_wrapper),
+        '2': ('Note Manager', run_note_manager_wrapper),
+        '3': ('Event Manager', run_event_manager_wrapper),
+        '4': ('File Manager', run_file_manager_wrapper),
+        '0': ('Exit', exit_program)
+    }
+    handler = CommandHandler(commands, view)
 
     while True:
-        program_name = "Main Menu"
-        options = {
-            '1': 'Contact Manager',
-            '2': 'Note Manager',
-            '3': 'Event Manager',
-            '4': 'File Manager',
-            '0': 'Exit'
-        }
-        choice = view.display_menu(program_name, options)
+        choice = view.display_menu("Main Menu", handler.get_commands_for_display())
+        handler.handle_command(choice)
 
-        if choice == '1':
-            run_contact_manager()
-        elif choice == '2':
-            run_note_manager()
-        elif choice == '3':
-            run_event_manager()
-        elif choice == '4':
-            file_manager_menu(view)
-        elif choice == '0':
-            exit()
-        else:
-            view.display_message('Invalid choice. Please select a valid option.')
+
+def run_file_sorter_wrapper():
+    clear_console()
+    run_file_sorter()
+    counter()
+
+
+def return_to_main_menu():
+    clear_console()
 
 
 def file_manager_menu(view):
-    while True:
-        program_name = "File Manager V0.1"
-        options = {
-            '1': 'Sort Files',
-            '0': 'Return to Main Menu'
-        }
-        choice = view.display_menu(program_name, options)
+    commands = {
+        '1': ('Sort Files', run_file_sorter_wrapper),
+        '0': ('Return to Main Menu', return_to_main_menu)
+    }
+    handler = CommandHandler(commands, view)
 
-        if choice == '1':
-            run_file_sorter()
-            counter()
-        elif choice == '0':
-            return
-        else:
-            view.display_message('Invalid choice. Please select a valid option.')
+    while True:
+        choice = view.display_menu("File Manager V0.1", handler.get_commands_for_display())
+        if choice == '0':
+            break
+        handler.handle_command(choice)
 
 
 if __name__ == '__main__':

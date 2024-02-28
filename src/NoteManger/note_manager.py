@@ -1,6 +1,6 @@
 from datetime import date
-from View.base_view import ConsoleView
-from tools.common import CommandHandler, handle_error
+from base_view import NoteConsoleView
+from common import CommandHandler, handle_error
 import json
 
 
@@ -76,6 +76,9 @@ class NoteManager:
                 return notes
         except FileNotFoundError:
             return []
+        except json.JSONDecodeError:
+            self.view.display_error('File format error')
+            return []
 
     def save_notes(self):
         """
@@ -100,34 +103,28 @@ class NoteManager:
 
     @handle_error
     def search_note(self):
-        """
-        Searches for notes based on a query.
-        """
         query = self.view.get_input('Enter search query: ')
-        results = [note for note in self.notes if query in note.title or query in note.content\
-                   or query in note.tags or query in note.note_date]
+        results = [note for note in self.notes if query in note.title or query in note.content
+                   or any(query in tag for tag in note.tags) or query in note.note_date]
         if results:
-            sorted_results = sorted(results, key=lambda note: note.title)
             self.view.display_message('Search results:')
-            for note in sorted_results:
-                self.view.display_message(str(note))
+            self.view.display_notes_list(results)
         else:
-            self.view.display_message('No notes found matching the query.')
+            self.view.display_error('No notes found matching the query.')
 
     @handle_error
     def edit_note(self):
-        """
-        Edits an existing note.
-        """
         title = self.view.get_input('Enter the title of the note you want to edit: ')
-        new_content = self.view.get_input('Enter the new content for the note: ')
         for note in self.notes:
             if note.title == title:
+                self.view.display_note_details(note)
+                new_content = self.view.get_input('Enter the new content for the note: ')
                 note.content = new_content
                 self.save_notes()
-                self.view.display_message('Note successfully edited.')
+                self.view.display_message('Note successfully edited. Updated details:')
+                self.view.display_note_details(note)
                 return
-        self.view.display_message('Note not found.')
+        self.view.display_error('Note not found.')
 
     @handle_error
     def delete_note(self):
@@ -141,35 +138,27 @@ class NoteManager:
                 self.save_notes()
                 self.view.display_message('Note successfully deleted.')
                 return
-        self.view.display_message('Note not found.')
+        self.view.display_error('Note not found.')
 
     @handle_error
     def add_tag_to_note(self):
-        """
-        Adds a tag to an existing note.
-        """
         title = self.view.get_input('Enter the title of the note to which you want to add a tag: ')
-        tag = self.view.get_input('Enter the tag: ')
         for note in self.notes:
             if note.title == title:
+                tag = self.view.get_input('Enter the tag: ')
                 note.tags.append(tag)
                 self.save_notes()
-                self.view.display_message('Tag successfully added to the note.')
+                self.view.display_message('Tag successfully added to the note. Updated details:')
+                self.view.display_note_details(note)
                 return
-        self.view.display_message('Note not found.')
+        self.view.display_error('Note not found.')
 
     @handle_error
     def show_all_notes(self):
-        """
-        Displays all notes.
-        """
         if not self.notes:
-            self.view.display_message('No notes found.')
+            self.view.display_error('No notes found.')
             return
-        sorted_notes = sorted(self.notes, key=lambda note: note.title)
-        self.view.display_message('All notes:')
-        for note in sorted_notes:
-            self.view.display_message(str(note))
+        self.view.display_notes_list(self.notes)
 
 
 class NoteCommandHandler(CommandHandler):
@@ -189,7 +178,7 @@ class NoteCommandHandler(CommandHandler):
             manager: The NoteManager object to perform note-related operations.
             view: The view object for input/output.
         """
-        super().__init__(manager, view)
+        self.manager = manager
         commands = {
             "1": ("Add note", manager.add_note),
             "2": ("Search note", manager.search_note),
@@ -200,25 +189,6 @@ class NoteCommandHandler(CommandHandler):
             "0": ("Return to Main Menu", self.return_to_main_menu())
         }
         super().__init__(commands, view)
-        self.manager = manager
-
-    def handle_command(self, choice):
-        """
-        Handle the selected command.
-
-        :param choice: User's choice of command.
-        """
-        command = self.commands.get(choice)
-        if command:
-            command[1]()
-        else:
-            self.view.display_message('Invalid choice. Please select a valid option.')
-
-    def return_to_main_menu(self):
-        """
-        Return to the main menu.
-        """
-        return
 
 
 def run_note_manager():
@@ -227,27 +197,17 @@ def run_note_manager():
     """
     program_name = "Note Manager V0.1"
     note_file_path = 'notes.json'
-    view = ConsoleView()
+    view = NoteConsoleView()
     manager = NoteManager(note_file_path, view)
     note_command_handler = NoteCommandHandler(manager, view)
 
     while True:
-        options = {
-            '1': 'Add note',
-            '2': 'Search note',
-            '3': 'Edit note',
-            '4': 'Delete note',
-            '5': 'Add tag to note',
-            '6': 'Show all notes',
-            '0': 'Return to Main Menu'
-        }
+        options = note_command_handler.get_commands_for_display()
         choice = view.display_menu(program_name, options)
-        if choice in ['1', '2', '3', '4', '5', '6']:
-            note_command_handler.handle_command(choice)
-        elif choice == '0':
+        if choice == '0':
             return
         else:
-            view.display_message('Invalid choice. Please select a valid option.')
+            note_command_handler.handle_command(choice)
 
 
 if __name__ == '__main__':

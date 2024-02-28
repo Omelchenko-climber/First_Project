@@ -70,6 +70,7 @@ class Email(Field):
 class Birthday(Field):
     def __init__(self, birthday):
         super().__init__(birthday)
+        self.__value = datetime.strptime(birthday, "%d.%m.%Y") if birthday else None
 
     def is_valid(self, birthday):
         try:
@@ -78,6 +79,9 @@ class Birthday(Field):
             return False, f'Invalid birthday "{birthday}". Right birthday forman dd.mm.yyyy'
         else:
             return True, None
+
+    def __str__(self):
+        return self.__value.strftime("%d.%m.%Y") if self.__value else ""
 
 
 class Address(Field):

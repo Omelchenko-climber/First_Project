@@ -1,6 +1,6 @@
-from ContactManager.models import ObjectValidateError, AddressBook, Record, Name, Address, Phone, Email, Birthday
-from tools.common import CommandHandler, handle_error
-from View.base_view import ConsoleView
+from models import ObjectValidateError, AddressBook, Record, Name, Address, Phone, Email, Birthday
+from common import CommandHandler, handle_error
+from base_view import ContactConsoleView
 
 
 class UserInputHandler:
@@ -126,7 +126,7 @@ class ContactManager:
             return
 
         if self.address_book.find(name):
-            self.view.display_message(f'Contact with name "{name}" already exists.')
+            self.view.display_error(f'Contact with name "{name}" already exists.')
             return
 
         phones = self.user_input_handler.get_user_output('phone', required=True)
@@ -141,7 +141,8 @@ class ContactManager:
         record.phones.extend(Phone(phone_number) for phone_number in phones)
         self.address_book.add_record(record)
         self.address_book.save_data_to_file()
-        self.view.display_message(f'Contact {name} added.')
+        self.view.display_message(f'Contact {name} added.Contact details: ')
+        self.view.display_contact_details(record)
 
     @handle_error
     def handle_change_contact(self):
@@ -154,7 +155,7 @@ class ContactManager:
 
         contact = self.address_book.find(name_to_change)
         if contact:
-            name = self.user_input_handler.get_user_output('name')
+            name = self.user_input_handler.get_user_output('New name')
             phones = self.user_input_handler.get_user_output('phone')
             email = self.user_input_handler.get_user_output('email', required=False)
             birthday = self.user_input_handler.get_user_output('birthday', required=False)
@@ -170,9 +171,10 @@ class ContactManager:
                 contact.add_address(address)
 
             self.address_book.save_data_to_file()
-            self.view.display_message(f'Contact {name_to_change} changed.')
+            self.view.display_message(f'Contact {name_to_change} changed.Updated details: ')
+            self.view.display_contact_details(contact)
         else:
-            self.view.display_message(f'Contact with name "{name_to_change}" not found.')
+            self.view.display_error(f'Contact with name "{name_to_change}" not found.')
 
     @handle_error
     def handle_delete_contact(self):
@@ -185,7 +187,7 @@ class ContactManager:
             self.address_book.save_data_to_file()
             self.view.display_message(f"Contact '{name}' successfully deleted.")
         else:
-            self.view.display_message(f"Contact with the name '{name}' not found.")
+            self.view.display_error(f"Contact with the name '{name}' not found.")
 
     @handle_error
     def handle_get_contact_by_name(self):
@@ -195,9 +197,9 @@ class ContactManager:
         name = self.view.get_input("Enter the name of the contact to search for: ")
         record = self.address_book.find(name)
         if record:
-            self.view.display_message(str(record))
+            self.view.display_contact_details(record)
         else:
-            self.view.display_message(f"Contact with the name '{name}' not found.")
+            self.view.display_error(f"Contact with the name '{name}' not found.")
 
     @handle_error
     def handle_search_contacts(self):
@@ -209,22 +211,20 @@ class ContactManager:
         if found_contacts:
             self.view.display_message("Found contacts:")
             for contact in found_contacts:
-                self.view.display_message(contact)
+                self.view.display_contact_details(contact)
         else:
-            self.view.display_message(f"No contacts found for the query '{query}'.")
+            self.view.display_error(f"No contacts found for the query '{query}'.")
 
     def handle_display_all_contacts(self):
         """
         Handle displaying all contacts.
         """
-        all_contacts = self.address_book.iterator()
-        found_contacts = False
-        for page in all_contacts:
-            for contact in page:
-                self.view.display_message(str(contact))
-                found_contacts = True
-        if not found_contacts:
-            self.view.display_message("No contacts found.")
+        try:
+            if not self.address_book.data:
+                raise ValueError("The address book is empty.")
+            self.view.display_all_contacts(self.address_book)
+        except ValueError as e:
+            self.view.display_error(str(e))
 
     @handle_error
     def handle_congratulate(self):
@@ -255,10 +255,10 @@ class ContactManager:
             else:
                 result = f'No contacts have birthdays in the next {days} days.'
 
-            self.view.display_message(result)
+            self.view.display_contact_details(result)
 
         except ValueError:
-            self.view.display_message("Please enter a valid number of days.")
+            self.view.display_error("Please enter a valid number of days.")
 
 
 class ContactCommandHandler(CommandHandler):
@@ -270,7 +270,7 @@ class ContactCommandHandler(CommandHandler):
         :param manager: The ContactManager instance.
         :param view: The view for displaying messages.
         """
-        super().__init__(manager, view)
+        self.manager = manager
         commands = {
             '1': ("Add contact", manager.handle_add_contact),
             '2': ("Change contact", manager.handle_change_contact),
@@ -282,25 +282,6 @@ class ContactCommandHandler(CommandHandler):
             '0': ("Return to main menu", self.return_to_main_menu())
         }
         super().__init__(commands, view)
-        self.manager = manager
-
-    def handle_command(self, choice):
-        """
-        Handle the selected command.
-
-        :param choice: User's choice of command.
-        """
-        command = self.commands.get(choice)
-        if command:
-            command[1]()
-        else:
-            self.view.display_message('Invalid choice. Please select a valid option.')
-
-    def return_to_main_menu(self):
-        """
-        Return to the main menu.
-        """
-        return
 
 
 def run_contact_manager():
@@ -309,31 +290,21 @@ def run_contact_manager():
     """
 
     program_name = "Contact Manager V0.1"
-    view = ConsoleView()
+    view = ContactConsoleView()
     address_book = AddressBook()
     address_book.load_data_from_file()
     manager = ContactManager(address_book, view)
     contact_command_handler = ContactCommandHandler(manager, view)
 
     while True:
-        options = {
-            '1': 'Add contact',
-            '2': 'Change contact',
-            '3': 'Delete contact',
-            '4': 'Get contact by name',
-            '5': 'Search contacts',
-            '6': 'Show all contacts',
-            '7': 'Congratulate',
-            '0': 'Return to Main Menu'
-        }
+        options = contact_command_handler.get_commands_for_display()
         choice = view.display_menu(program_name, options)
-        if choice in ['1', '2', '3', '4', '5', '6', '7']:
-            contact_command_handler.handle_command(choice)
-        elif choice == '0':
+        if choice == '0':
             return
         else:
-            view.display_message('Invalid choice. Please select a valid option.')
+            contact_command_handler.handle_command(choice)
 
 
 if __name__ == '__main__':
     run_contact_manager()
+

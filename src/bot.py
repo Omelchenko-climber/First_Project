@@ -1,9 +1,9 @@
-from contact_manager import run_contact_manager
-from note_manager import run_note_manager
-from event_manager import run_event_manager
-from file_sorter import run_file_sorter, counter
-from base_view import ConsoleView
-from common import clear_console, CommandHandler
+from ContactManager.contact_manager import run_contact_manager
+from NoteManager.note_manager import run_note_manager
+from EventManager.event_manager import run_event_manager
+from FileManager.file_sorter import run_file_sorter, counter
+from View.base_view import ConsoleView
+from tools.common import clear_console, CommandHandler
 
 
 def run_contact_manager_wrapper():

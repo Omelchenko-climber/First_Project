@@ -1,5 +1,5 @@
-from View.base_view import ConsoleView
-from tools.common import CommandHandler, handle_error
+from base_view import EventConsoleView
+from common import CommandHandler, handle_error
 from datetime import datetime, timedelta
 import json
 
@@ -97,14 +97,13 @@ class EventManager:
         self.view.display_message('Event added successfully.')
 
     def search_event(self):
-        title = self.view.get_input('Enter event title to search: ')
-        found_events = [event for event in self.events if event.title.lower() == title.lower()]
-        if found_events:
-            self.view.display_message(f"Found {len(found_events)} event(s) with title '{title}':")
-            for event in found_events:
-                self.view.display_message(str(event))
+        query = self.view.get_input('Enter event title to search: ')
+        results = [event for event in self.events if query in event.title or any(query in tag for tag in event.tags)]
+        if results:
+            self.view.display_message('Search results')
+            self.view.display_events_list(results)
         else:
-            self.view.display_message(f"No events found with title '{title}'.")
+            self.view.display_error('No events found matching the query')
 
     def edit_event(self):
         title = self.view.get_input('Enter event title to edit: ')
@@ -122,10 +121,11 @@ class EventManager:
                 event.title = new_title
                 event.date_time = new_date_time
                 event.tags = new_tags
-                self.view.display_message('Event edited successfully.')
+                self.view.display_message('Event edited successfully. Updated details:')
+                self.view.display_event_details(event)
                 self.save_events()
                 return
-        self.view.display_message(f'Event with title "{title}" not found.')
+        self.view.display_error(f'Event with title "{title}" not found.')
 
     def delete_event(self):
         title = self.view.get_input('Enter event title to delete: ')
@@ -135,7 +135,7 @@ class EventManager:
                 self.view.display_message('Event deleted successfully.')
                 self.save_events()
                 return
-        self.view.display_message(f'Event with title "{title}" not found.')
+        self.view.display_error(f'Event with title "{title}" not found.')
 
     @handle_error
     def show_upcoming_events(self):
@@ -144,20 +144,16 @@ class EventManager:
         if upcoming_events:
             sorted_upcoming_events = sorted(upcoming_events, key=lambda event: event.date_time)
             self.view.display_message('Upcoming events within a week:')
-            for event in sorted_upcoming_events:
-                self.view.display_message(str(event))
+            self.view.display_events_list(sorted_upcoming_events)
         else:
-            self.view.display_message('No upcoming events within a week.')
+            self.view.display_error('No upcoming events within a week.')
 
     @handle_error
     def show_all_events(self):
         if not self.events:
             self.view.display_message('No events found.')
             return
-        sorted_events = sorted(self.events, key=lambda event: event.date_time)
-        self.view.display_message('All events:')
-        for event in sorted_events:
-            self.view.display_message(str(event))
+        self.view.display_events_list(self.events)
 
 
 class EventCommandHandler(CommandHandler):
@@ -172,6 +168,7 @@ class EventCommandHandler(CommandHandler):
         :param manager: Event manager.
         :param view: View object for interacting with the user.
         """
+        self.manager = manager
         commands = {
             "1": ("Add event", manager.add_event),
             "2": ("Show upcoming events", manager.show_upcoming_events),
@@ -182,25 +179,6 @@ class EventCommandHandler(CommandHandler):
             "0": ("Return to Main Menu", self.return_to_main_menu())
         }
         super().__init__(commands, view)
-        self.manager = manager
-
-    def handle_command(self, choice):
-        """
-        Handle the selected command.
-
-        :param choice: User's choice of command.
-        """
-        command = self.commands.get(choice)
-        if command:
-            command[1]()
-        else:
-            self.view.display_message('Invalid choice. Please select a valid option.')
-
-    def return_to_main_menu(self):
-        """
-        Return to the main menu.
-        """
-        return
 
 
 def run_event_manager():
@@ -209,29 +187,17 @@ def run_event_manager():
     """
     program_name = "Event Manager V0.1"
     event_file_path = 'events.json'
-    view = ConsoleView()
+    view = EventConsoleView()
     event_manager = EventManager(event_file_path, view)
     event_command_handler = EventCommandHandler(event_manager, view)
 
     while True:
-        options = {
-            '1': 'Add event',
-            '2': 'Show upcoming events',
-            '3': 'Show all events',
-            '4': 'Search event',
-            '5': 'Edit event',
-            '6': 'Delete event',
-            '0': 'Return to Main Menu'
-        }
+        options = event_command_handler.get_commands_for_display()
         choice = view.display_menu(program_name, options)
-        if choice in ['1', '2', '3', '4', '5', '6']:
-
-            event_command_handler.handle_command(choice)
-        elif choice == '0':
-            event_manager.save_events()
+        if choice == '0':
             return
         else:
-            view.display_message('Invalid choice. Please select a valid option.')
+            event_command_handler.handle_command(choice)
 
 
 if __name__ == '__main__':
